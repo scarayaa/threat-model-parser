@@ -123,4 +123,4 @@ threat-model-parser/
 
 ## License
 
-ISC
+MIT
