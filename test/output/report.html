@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Threat Model Report — Architettura Cliente - Threat Model</title>
+  <style>
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: #212529;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 32px 40px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  page-break-after: always;
+}
+
+/* Coversheet */
+.coversheet { text-align: left; }
+.cover-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+.cover-title h1 { font-size: 48px; font-weight: 900; text-align: center; }
+.cover-meta { margin-top: 40px; }
+.cover-meta ul { list-style: none; padding: 0; }
+.cover-meta li { text-align: right; margin: 6px 0; font-size: 13px; }
+
+/* Executive summary */
+.executive-summary h2 { font-size: 22px; border-bottom: 2px solid #dee2e6; padding-bottom: 8px; }
+.executive-summary h3 { font-size: 15px; margin-top: 20px; }
+.summary-text { white-space: pre-wrap; }
+.summary-table { border-collapse: collapse; margin-top: 10px; }
+.summary-table th, .summary-table td { padding: 6px 16px; border: 1px solid #dee2e6; }
+.summary-table th { text-align: left; background: #f8f9fa; font-weight: 600; }
+.summary-table td { text-align: right; min-width: 60px; }
+
+/* Diagrams */
+.diagram-section h2.diagram-title { font-size: 20px; border-bottom: 2px solid #dee2e6; padding-bottom: 6px; }
+.diagram-description { color: #6c757d; margin-bottom: 16px; white-space: pre-wrap; }
+.diagram-svg-wrap { margin: 16px 0 24px; }
+
+/* Entities */
+.entity-block { margin-top: 28px; }
+.entity-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+.entity-description { padding: 6px 12px; white-space: pre-wrap; color: #495057; }
+
+/* Threat table */
+.threat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 11px;
+}
+.threat-table th, .threat-table td {
+  border: 1px solid #dee2e6;
+  padding: 5px 8px;
+  vertical-align: top;
+}
+.threat-table thead th {
+  background: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.threat-table tbody tr:nth-child(odd) { background: #fdfdfd; }
+.threat-table td { white-space: pre-wrap; }
+
+/* Severity colours */
+.sev-critical { color: #721c24; font-weight: bold; }
+.sev-high     { color: #842029; }
+.sev-medium   { color: #664d03; }
+.sev-low      { color: #155724; }
+.sev-tbd      { color: #6c757d; }
+
+/* Status colours */
+.status-open          { color: #842029; }
+.status-mitigated     { color: #155724; }
+.status-notapplicable { color: #6c757d; }
+
+@media print {
+  .page { border: none; margin: 0; padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<section class="page coversheet">
+  <div class="cover-title">
+    <h1>Architettura Cliente - Threat Model</h1>
+  </div>
+  <div class="cover-meta">
+    <ul>
+      <li><strong>Owner</strong>: IO</li>
+      <li><strong>Reviewer</strong>: </li>
+      <li><strong>Contributors</strong>: —</li>
+      <li><strong>Date Generated</strong>: Fri Mar 20 2026</li>
+    </ul>
+  </div>
+</section>
+
+<section class="page executive-summary">
+  <h2>Executive Summary</h2>
+  <h3>Description</h3>
+  <p class="summary-text">Threat model dell'architettura: App esterna → Internet → App Service (Perimetro cliente)</p>
+  <h3>Summary</h3>
+  <table class="summary-table">
+    <tbody><tr><th>Total Threats</th><td class="td-summary-total">8</td></tr>
+<tr><th>Total Mitigated</th><td class="td-summary-mitigated">0</td></tr>
+<tr><th>Total Open</th><td class="td-summary-not-mitigated">8</td></tr>
+<tr><th>Open / Critical Severity</th><td class="td-summary-open-critical">1</td></tr>
+<tr><th>Open / High Severity</th><td class="td-summary-open-high">5</td></tr>
+<tr><th>Open / Medium Severity</th><td class="td-summary-open-medium">2</td></tr>
+<tr><th>Open / Low Severity</th><td class="td-summary-open-low">0</td></tr></tbody>
+  </table>
+</section>
+
+<section class="page diagram-section">
+  <h2 class="diagram-title">Architettura Principale</h2>
+  
+  <div class="diagram-svg-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 380.0 600.0"
+     style="max-height:600px;border:1px solid #dee2e6;border-radius:4px;background:#fff;">
+<defs>
+  <marker id="arrow-open" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+  <marker id="arrow-open-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+</defs>
+<rect x="40.0" y="350.0" width="300" height="210" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="110.0" y="40.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5" rx="3"/>
+<text x="190.0" y="80.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">App esterna</text>
+<rect x="110.0" y="200.0" width="160" height="80" fill="#f8f9fa" stroke="#555" stroke-width="1.5" rx="3"/>
+<text x="190.0" y="240.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Internet</text>
+<ellipse cx="190.0" cy="460.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="190.0" y="452.9" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">App</text>
+<text x="190.0" y="467.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<polyline points="190.0,120.0 190.0,200.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="none"/>
+<rect x="137.2" y="152.0" width="77.6" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="176.0" y="160.0" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">HTTP Request</text>
+<polyline points="190.0,280.0 190.0,410.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="none"/>
+<rect x="161.0" y="337.0" width="30.0" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="176.0" y="345.0" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">API</text>
+</svg>
+</div>
+  
+<div class="entity-block">
+  <h3 class="entity-title">Perimetro cliente (BoundaryBox)</h3>
+  <p class="entity-description">Description: Confine di fiducia che delimita l'infrastruttura del cliente dalla rete pubblica</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">App esterna (Actor)</h3>
+  <p class="entity-description">Description: Applicazione client esterna che comunica verso l'API pubblica</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>1</td>
+  <td>Spoofing dell'App esterna</td>
+  <td>Spoofing</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Un attaccante potrebbe impersonare l'App esterna inviando richieste API non autorizzate sfruttando l'assenza di mutua autenticazione.</td>
+  <td>Implementare autenticazione client tramite certificati mTLS o API key con rotazione periodica.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>Repudiation delle richieste API</td>
+  <td>Repudiation</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>L'App esterna potrebbe negare di aver effettuato richieste in assenza di un meccanismo di audit trail affidabile.</td>
+  <td>Abilitare logging strutturato con timestamp firmati su ogni richiesta in ingresso. Conservare i log su storage immutabile.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Internet (Actor)</h3>
+  <p class="entity-description">Description: Rete pubblica non affidabile attraverso cui transitano le comunicazioni</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">App Service (Process)</h3>
+  <p class="entity-description">Description: Servizio applicativo interno nel perimetro cliente che espone l'API</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>5</td>
+  <td>Elevation of Privilege tramite bypass autorizzazione</td>
+  <td>Elevation of privilege</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Un attaccante autenticato potrebbe sfruttare logiche di autorizzazione insufficienti (IDOR, privilege escalation) per accedere a risorse di altri utenti o funzioni privilegiate.</td>
+  <td>Implementare RBAC con verifica dell'ownership a livello di ogni endpoint. Eseguire revisione del codice focalizzata su authorization checks.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>Denial of Service sull'endpoint API</td>
+  <td>Denial of service</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>L'endpoint API esposto pubblicamente può essere bersaglio di attacchi volumetrici o di tipo slowloris che ne compromettono la disponibilità.</td>
+  <td>Configurare rate limiting, throttling e circuit breaker. Integrare Azure DDoS Protection o equivalente WAF davanti all'App Service.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td>Information Disclosure tramite error messages</td>
+  <td>Information disclosure</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Messaggi di errore dettagliati (stack trace, connection string, versioni componenti) possono esporre informazioni sensibili sull'infrastruttura interna.</td>
+  <td>Configurare gestione centralizzata degli errori con messaggi generici verso il client. Loggare i dettagli solo internamente.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">HTTP Request (Data Flow)</h3>
+  <p class="entity-description">Description: Richiesta HTTPS dall'App esterna verso Internet</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>3</td>
+  <td>Tampering dei dati in transito</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Un attaccante man-in-the-middle potrebbe intercettare e modificare il payload delle richieste HTTP se il canale non è adeguatamente protetto.</td>
+  <td>Forzare TLS 1.2+ su tutti i canali. Implementare certificate pinning lato client. Verificare l'integrità del payload con HMAC.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">API (Data Flow)</h3>
+  <p class="entity-description">Description: Chiamata API REST verso l'App Service attraverso il perimetro cliente</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>4</td>
+  <td>Information Disclosure su canale API non cifrato</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Se il canale API non utilizza TLS, dati sensibili (token, payload, PII) possono essere intercettati da attori sulla rete pubblica.</td>
+  <td>Imporre HTTPS obbligatorio con redirect automatico da HTTP. Configurare HSTS con preload. Utilizzare TLS 1.3 dove possibile.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td>Injection tramite input non validato</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td></td>
+  <td>Payload API contenenti input malevoli (SQL injection, command injection, XXE) non validati lato server possono compromettere il sistema backend.</td>
+  <td>Implementare validazione e sanitizzazione degli input server-side. Utilizzare query parametrizzate. Adottare un WAF davanti all'endpoint.</td>
+</tr></tbody>
+  </table>
+</div>
+</section>
+</body>
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Threat Model Report — E-Commerce Platform Threat Model</title>
+  <style>
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: #212529;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 32px 40px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  page-break-after: always;
+}
+
+/* Coversheet */
+.coversheet { text-align: left; }
+.cover-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+.cover-title h1 { font-size: 48px; font-weight: 900; text-align: center; }
+.cover-meta { margin-top: 40px; }
+.cover-meta ul { list-style: none; padding: 0; }
+.cover-meta li { text-align: right; margin: 6px 0; font-size: 13px; }
+
+/* Executive summary */
+.executive-summary h2 { font-size: 22px; border-bottom: 2px solid #dee2e6; padding-bottom: 8px; }
+.executive-summary h3 { font-size: 15px; margin-top: 20px; }
+.summary-text { white-space: pre-wrap; }
+.summary-table { border-collapse: collapse; margin-top: 10px; }
+.summary-table th, .summary-table td { padding: 6px 16px; border: 1px solid #dee2e6; }
+.summary-table th { text-align: left; background: #f8f9fa; font-weight: 600; }
+.summary-table td { text-align: right; min-width: 60px; }
+
+/* Diagrams */
+.diagram-section h2.diagram-title { font-size: 20px; border-bottom: 2px solid #dee2e6; padding-bottom: 6px; }
+.diagram-description { color: #6c757d; margin-bottom: 16px; white-space: pre-wrap; }
+.diagram-svg-wrap { margin: 16px 0 24px; }
+
+/* Entities */
+.entity-block { margin-top: 28px; }
+.entity-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+.entity-description { padding: 6px 12px; white-space: pre-wrap; color: #495057; }
+
+/* Threat table */
+.threat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 11px;
+}
+.threat-table th, .threat-table td {
+  border: 1px solid #dee2e6;
+  padding: 5px 8px;
+  vertical-align: top;
+}
+.threat-table thead th {
+  background: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.threat-table tbody tr:nth-child(odd) { background: #fdfdfd; }
+.threat-table td { white-space: pre-wrap; }
+
+/* Severity colours */
+.sev-critical { color: #721c24; font-weight: bold; }
+.sev-high     { color: #842029; }
+.sev-medium   { color: #664d03; }
+.sev-low      { color: #155724; }
+.sev-tbd      { color: #6c757d; }
+
+/* Status colours */
+.status-open          { color: #842029; }
+.status-mitigated     { color: #155724; }
+.status-notapplicable { color: #6c757d; }
+
+@media print {
+  .page { border: none; margin: 0; padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<section class="page coversheet">
+  <div class="cover-title">
+    <h1>E-Commerce Platform Threat Model</h1>
+  </div>
+  <div class="cover-meta">
+    <ul>
+      <li><strong>Owner</strong>: Security Architecture Team</li>
+      <li><strong>Reviewer</strong>: David Okonkwo</li>
+      <li><strong>Contributors</strong>: Alice Mercer, Bob Tanaka, Carol Singh</li>
+      <li><strong>Date Generated</strong>: Fri Mar 20 2026</li>
+    </ul>
+  </div>
+</section>
+
+<section class="page executive-summary">
+  <h2>Executive Summary</h2>
+  <h3>Description</h3>
+  <p class="summary-text">Threat model for a modern e-commerce platform including web frontend, API gateway, microservices, payment processing, database tier, and external identity provider. Covers customer-facing flows, internal service communication, and third-party integrations.</p>
+  <h3>Summary</h3>
+  <table class="summary-table">
+    <tbody><tr><th>Total Threats</th><td class="td-summary-total">35</td></tr>
+<tr><th>Total Mitigated</th><td class="td-summary-mitigated">5</td></tr>
+<tr><th>Total Not Applicable</th><td class="td-summary-not-applicable">1</td></tr>
+<tr><th>Total Open</th><td class="td-summary-not-mitigated">29</td></tr>
+<tr><th>Open / Critical Severity</th><td class="td-summary-open-critical">10</td></tr>
+<tr><th>Open / High Severity</th><td class="td-summary-open-high">13</td></tr>
+<tr><th>Open / Medium Severity</th><td class="td-summary-open-medium">6</td></tr>
+<tr><th>Open / Low Severity</th><td class="td-summary-open-low">0</td></tr></tbody>
+  </table>
+</section>
+
+<section class="page diagram-section">
+  <h2 class="diagram-title">API Gateway &amp; Microservices</h2>
+  <p class="diagram-description">Internal service mesh: API Gateway, Order Service, Product Catalog, Inventory Service and their backing stores.</p>
+  <div class="diagram-svg-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 980.0 740.0"
+     style="max-height:600px;border:1px solid #dee2e6;border-radius:4px;background:#fff;">
+<defs>
+  <marker id="arrow-open" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+  <marker id="arrow-open-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+</defs>
+<rect x="40.0" y="40.0" width="240" height="160" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="360.0" y="40.0" width="580" height="500" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="80.0" y="620.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5" rx="3"/>
+<text x="160.0" y="660.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Mobile App</text>
+<ellipse cx="130.0" cy="140.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="130.0" y="132.8" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">API</text>
+<text x="130.0" y="147.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Gateway</text>
+<ellipse cx="460.0" cy="130.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="460.0" y="122.8" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Order</text>
+<text x="460.0" y="137.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<ellipse cx="660.0" cy="130.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="660.0" y="115.7" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Product</text>
+<text x="660.0" y="130.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Catalog</text>
+<text x="660.0" y="144.3" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<rect x="410.0" y="280.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<line x1="410.0" y1="288.0" x2="570.0" y2="288.0" stroke="#c0392b" stroke-width="1"/>
+<line x1="410.0" y1="352.0" x2="570.0" y2="352.0" stroke="#c0392b" stroke-width="1"/>
+<text x="490.0" y="320.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Orders DB (PostgreSQL)</text>
+<rect x="660.0" y="280.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<line x1="660.0" y1="288.0" x2="820.0" y2="288.0" stroke="#c0392b" stroke-width="1"/>
+<line x1="660.0" y1="352.0" x2="820.0" y2="352.0" stroke="#c0392b" stroke-width="1"/>
+<text x="740.0" y="320.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Product Cache (Redis)</text>
+<polyline points="157.7,620.0 132.9,189.9" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="108.9" y="396.2" width="100.8" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="159.3" y="404.2" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">REST API (HTTPS)</text>
+<polyline points="180.0,138.5 410.0,131.5" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="252.9" y="113.0" width="83.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="294.6" y="121.0" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Internal gRPC</text>
+<polyline points="180.0,139.1 610.0,130.9" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="353.0" y="113.0" width="83.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="394.7" y="121.0" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Internal gRPC</text>
+<polyline points="467.8,179.4 483.7,280.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="450.8" y="219.5" width="77.6" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="489.6" y="227.5" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">SQL over TLS</text>
+<polyline points="679.4,176.1 723.2,280.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="684.1" y="214.6" width="60.2" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="714.2" y="222.6" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Redis TCP</text>
+</svg>
+</div>
+  
+<div class="entity-block">
+  <h3 class="entity-title">API Gateway Zone (BoundaryBox)</h3>
+  <p class="entity-description">Description: Edge layer receiving all inbound API traffic before routing to internal services.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Internal Services VPC (BoundaryBox)</h3>
+  <p class="entity-description">Description: Private network hosting all microservices, accessible only via API Gateway or internal service-to-service calls.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Mobile App (Actor)</h3>
+  <p class="entity-description">Description: Native iOS/Android application that consumes the REST API. Handles authentication tokens locally.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>9</td>
+  <td>Token Storage in Insecure Location</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.1</td>
+  <td>Access and refresh tokens stored in insecure shared preferences or unprotected files on rooted/jailbroken devices can be extracted by malicious apps.</td>
+  <td>Use iOS Keychain and Android Keystore for token storage. Detect rooted/jailbroken devices and limit functionality. Implement certificate pinning.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td>Fake Mobile App Impersonation</td>
+  <td>Spoofing</td>
+  <td class="sev-high">High</td>
+  <td class="status-notapplicable">N/A</td>
+  <td>6.8</td>
+  <td>A cloned or repackaged version of the mobile app could be published on third-party stores to steal credentials.</td>
+  <td>N/A — Platform enforces app attestation (App Attest / Play Integrity). Mitigated at the OS level.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">API Gateway (Process)</h3>
+  <p class="entity-description">Description: Central ingress point for all REST API traffic. Performs JWT validation, rate limiting, WAF filtering, and routing to downstream services.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>11</td>
+  <td>JWT Algorithm Confusion Attack</td>
+  <td>Elevation of privilege</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.0</td>
+  <td>If the API Gateway accepts 'alg: none' or allows RS256 tokens verified as HS256 using the public key as HMAC secret, attackers can forge arbitrary tokens.</td>
+  <td>Explicitly whitelist allowed JWT algorithms (RS256 only). Reject tokens with 'alg: none'. Use a well-maintained JWT library with algorithm pinning.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td>API Rate Limit Bypass</td>
+  <td>Denial of service</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.5</td>
+  <td>Distributed clients rotating IPs can bypass per-IP rate limits, overwhelming backend services with excessive requests.</td>
+  <td>Implement rate limiting by user ID (JWT sub claim) in addition to IP. Use token bucket algorithm. Integrate with a threat intelligence feed for known bot IPs.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td>Verbose Error Responses Leak Internal Details</td>
+  <td>Information disclosure</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-mitigated">Mitigated</td>
+  <td>4.0</td>
+  <td>Stack traces or internal service names returned in 500 error responses reveal architecture details useful for targeted attacks.</td>
+  <td>Gateway now returns generic error messages. Internal errors are logged with correlation IDs only. No stack traces in production responses.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Order Service (Process)</h3>
+  <p class="entity-description">Description: Manages order lifecycle: creation, status updates, fulfilment triggers. Writes to the Orders DB and emits events to the message queue.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>14</td>
+  <td>IDOR on Order Retrieval</td>
+  <td>Elevation of privilege</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>8.5</td>
+  <td>Without per-resource authorization checks, a customer can access another customer's order by manipulating the orderId parameter in the URL.</td>
+  <td>Enforce resource-level authorization: verify JWT sub claim matches the order's owner on every read/write operation. Add integration tests for IDOR scenarios.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td>Order Tampering via Replay Attack</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.8</td>
+  <td>An attacker who captures a valid 'create order' request can replay it to create duplicate orders, potentially abusing promotional codes or stock reserves.</td>
+  <td>Implement idempotency keys for order creation. Validate idempotency key uniqueness per user. Expire idempotency keys after 24 hours.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Product Catalog Service (Process)</h3>
+  <p class="entity-description">Description: Read-heavy service providing product listings, search, and detail pages. Backed by an Elasticsearch cluster and PostgreSQL.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>16</td>
+  <td>NoSQL Injection in Search Query</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>8.1</td>
+  <td>Unsanitized search query parameters passed to Elasticsearch queries can be manipulated to exfiltrate hidden product data or cause denial-of-service via expensive aggregation queries.</td>
+  <td>Use parameterized Elasticsearch query DSL. Whitelist allowed query fields. Set query complexity limits and circuit breakers on the Elasticsearch cluster.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td>Price Data Tampering via Cache Poisoning</td>
+  <td>Tampering</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.5</td>
+  <td>If the catalog cache (Redis) can be poisoned with incorrect price data, customers may see wrong prices, causing financial or reputational harm.</td>
+  <td>Sign cached price data with an HMAC key. Validate signatures on cache reads. Implement cache integrity monitoring alerts.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Orders DB (PostgreSQL) (Store)</h3>
+  <p class="entity-description">Description: Relational database storing order records, line items, status history, and customer references. Contains PII.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>18</td>
+  <td>SQL Injection via Order Service</td>
+  <td>Tampering</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.3</td>
+  <td>Unsanitized order fields forwarded to raw SQL queries could allow attackers to dump the entire orders database or modify order statuses.</td>
+  <td>Use parameterized queries or an ORM exclusively. Enable pg_audit for query logging. Apply principle of least privilege: Order Service DB user has no DDL permissions.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td>PII Exposure via Unencrypted Backup</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.0</td>
+  <td>Database backups stored without encryption could expose customer PII (name, address, order history) if backup storage is breached.</td>
+  <td>Encrypt all backups at rest using AES-256. Store backup encryption keys in a dedicated HSM or KMS. Restrict backup bucket access to backup service role only.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td>No Database Audit Log</td>
+  <td>Repudiation</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-mitigated">Mitigated</td>
+  <td>4.5</td>
+  <td>Without an audit log, changes to order records cannot be attributed to specific users or services, hampering incident response.</td>
+  <td>pg_audit extension is now enabled. All INSERT, UPDATE, DELETE on orders table are logged to a write-once audit log store.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Product Cache (Redis) (Store)</h3>
+  <p class="entity-description">Description: In-memory cache storing product listings and prices. No persistent data; populated from PostgreSQL on cache miss.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>21</td>
+  <td>Unauthenticated Redis Access</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>8.0</td>
+  <td>If Redis is not configured with authentication (requirepass) and network access is not restricted, any host in the VPC can read or flush the cache.</td>
+  <td>Enable Redis AUTH. Restrict network access via security groups to Order Service and Catalog Service IP ranges only. Enable Redis TLS.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">REST API (HTTPS) (Data Flow)</h3>
+  <p class="entity-description">Description: Mobile app communicates with backend via REST over HTTPS with Bearer token authentication.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>22</td>
+  <td>Missing Certificate Pinning</td>
+  <td>Tampering</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.3</td>
+  <td>Without certificate pinning in the mobile app, a compromised CA or local proxy can perform a MITM attack and inspect or modify API traffic.</td>
+  <td>Implement certificate pinning using the leaf certificate or public key hash. Provide an update mechanism to rotate pinned certificates before expiry.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Internal gRPC (Data Flow)</h3>
+  <p class="entity-description">Description: Routing order-related requests from API Gateway to Order Service via mTLS-secured gRPC.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Internal gRPC (Data Flow)</h3>
+  <p class="entity-description">Description: Routing catalog browse and search requests from API Gateway to Product Catalog Service.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">SQL over TLS (Data Flow)</h3>
+  <p class="entity-description">Description: Order Service reads and writes order records to PostgreSQL over an encrypted connection.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Redis TCP (Data Flow)</h3>
+  <p class="entity-description">Description: Catalog Service reads/writes product data to/from Redis cache.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>23</td>
+  <td>Unencrypted Redis Traffic</td>
+  <td>Information disclosure</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.0</td>
+  <td>Redis communication without TLS allows any host in the same subnet to sniff product prices and catalog data in transit.</td>
+  <td>Enable Redis TLS (stunnel or native Redis 6+ TLS). Enforce TLS on both client and server. Update connection strings in Catalog Service.</td>
+</tr></tbody>
+  </table>
+</div>
+</section>
+
+<section class="page diagram-section">
+  <h2 class="diagram-title">Frontend &amp; Authentication</h2>
+  <p class="diagram-description">Covers the customer browser, CDN, web frontend, and the external Identity Provider (IdP) SSO flow.</p>
+  <div class="diagram-svg-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 820.0 560.0"
+     style="max-height:600px;border:1px solid #dee2e6;border-radius:4px;background:#fff;">
+<defs>
+  <marker id="arrow-open" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+  <marker id="arrow-open-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+</defs>
+<rect x="40.0" y="40.0" width="300" height="200" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="440.0" y="40.0" width="340" height="200" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="40.0" y="320.0" width="740" height="200" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="80.0" y="100.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5" rx="3"/>
+<text x="160.0" y="140.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Customer Browser</text>
+<rect x="480.0" y="100.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5" rx="3"/>
+<text x="560.0" y="140.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">External IdP (OAuth2)</text>
+<ellipse cx="340.0" cy="420.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="340.0" y="405.7" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Web</text>
+<text x="340.0" y="420.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Frontend</text>
+<text x="340.0" y="434.3" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">(SPA)</text>
+<polyline points="185.7,180.0 313.0,377.9" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="204.9" y="263.4" width="112.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="261.1" y="271.4" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">HTTPS Page Request</text>
+<polyline points="370.9,380.7 528.6,180.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="388.3" y="263.7" width="100.8" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="438.7" y="271.7" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">OAuth2 PKCE Flow</text>
+</svg>
+</div>
+  
+<div class="entity-block">
+  <h3 class="entity-title">Public Internet (BoundaryBox)</h3>
+  <p class="entity-description">Description: Untrusted external network where end-users and attackers reside.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">DMZ / Edge (BoundaryBox)</h3>
+  <p class="entity-description">Description: Demilitarized zone hosting CDN edge nodes and WAF.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Internal VPC (BoundaryBox)</h3>
+  <p class="entity-description">Description: Private VPC containing application servers and services.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Customer Browser (Actor)</h3>
+  <p class="entity-description">Description: End-user browser interacting with the storefront. Runs untrusted client-side JavaScript.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>1</td>
+  <td>Session Token Theft via XSS</td>
+  <td>Spoofing</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>8.8</td>
+  <td>Malicious scripts injected into the page can steal session cookies or OAuth tokens stored in localStorage, allowing an attacker to impersonate the customer.</td>
+  <td>Set HttpOnly and Secure flags on all session cookies. Store tokens in memory only. Implement a strict Content Security Policy (CSP). Sanitize all user-generated content rendered in the DOM.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>Lack of Client-Side Audit Trail</td>
+  <td>Repudiation</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-mitigated">Mitigated</td>
+  <td>4.3</td>
+  <td>Without server-side logging of significant customer actions (add to cart, checkout initiation), a customer could deny having placed an order.</td>
+  <td>Log all order-critical events server-side with timestamps and IP addresses. Use signed audit log entries.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">External IdP (OAuth2) (Actor) <em>— Out of Scope</em></h3>
+  <p class="entity-description"><strong>Reason for out of scope:</strong> Managed by a third-party vendor; security posture governed by SLA and vendor compliance certifications (SOC 2, ISO 27001).</p><p class="entity-description">Description: Third-party identity provider (e.g. Google, Auth0) used for SSO. Out of direct control of the platform team.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>3</td>
+  <td>Compromised IdP Issues Forged Tokens</td>
+  <td>Spoofing</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.1</td>
+  <td>If the external IdP is compromised or misconfigured, it may issue JWTs for arbitrary users, granting them full access to the platform.</td>
+  <td>Validate JWT signatures against the IdP's published JWKS endpoint. Enforce audience (aud) and issuer (iss) claims. Implement token binding where possible.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Web Frontend (SPA) (Process)</h3>
+  <p class="entity-description">Description: React single-page application served via CDN. Handles rendering, routing, and OAuth2 PKCE flow for authentication.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>4</td>
+  <td>Open Redirect in OAuth Callback</td>
+  <td>Spoofing</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.4</td>
+  <td>The OAuth2 redirect_uri parameter is not strictly validated, allowing an attacker to redirect the authorization code to an attacker-controlled endpoint.</td>
+  <td>Strictly whitelist allowed redirect_uri values. Use state parameter with CSRF token. Validate redirect_uri on both client and authorization server.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>Denial of Service via CDN Cache Poisoning</td>
+  <td>Denial of service</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.9</td>
+  <td>Attackers may poison the CDN cache with malformed or malicious responses, causing legitimate users to receive corrupted pages.</td>
+  <td>Use cache keys that include all relevant headers. Validate responses before caching. Implement cache purge procedures.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>Sensitive Data in Browser Local Storage</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-mitigated">Mitigated</td>
+  <td>6.5</td>
+  <td>Access tokens or PII stored in localStorage are accessible to any script running on the page, enabling theft via XSS.</td>
+  <td>Tokens are now stored in memory only (React state/context). Sensitive operations require re-authentication. HttpOnly cookies used for refresh tokens.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">HTTPS Page Request (Data Flow)</h3>
+  <p class="entity-description">Description: Customer browser requests SPA assets and API data over HTTPS.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>7</td>
+  <td>TLS Downgrade Attack</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.5</td>
+  <td>An active network attacker may attempt to downgrade TLS to an older, vulnerable version (e.g., TLS 1.0) to intercept traffic.</td>
+  <td>Enforce TLS 1.2+ via server configuration. Enable HSTS with includeSubDomains and preload. Disable SSL 3.0, TLS 1.0, TLS 1.1 on all edge nodes.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">OAuth2 PKCE Flow (Data Flow)</h3>
+  <p class="entity-description">Description: PKCE-based OAuth2 authorization flow redirected via browser to the external IdP.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>8</td>
+  <td>Authorization Code Interception</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.2</td>
+  <td>Without PKCE, a malicious app on the same device could intercept the authorization code from the redirect URI and exchange it for tokens.</td>
+  <td>Enforce PKCE (S256 code challenge) for all public clients. Validate code_challenge on the authorization server. Ensure short-lived authorization codes (&lt; 1 minute).</td>
+</tr></tbody>
+  </table>
+</div>
+</section>
+
+<section class="page diagram-section">
+  <h2 class="diagram-title">Payment &amp; Checkout</h2>
+  <p class="diagram-description">Payment processing flow including the Checkout Service, external Payment Processor (Stripe), card data vault, and fraud detection.</p>
+  <div class="diagram-svg-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 920.0 580.0"
+     style="max-height:600px;border:1px solid #dee2e6;border-radius:4px;background:#fff;">
+<defs>
+  <marker id="arrow-open" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+  <marker id="arrow-open-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+</defs>
+<rect x="280.0" y="40.0" width="600" height="500" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="720.0" y="220.0" width="160" height="80" fill="#f8f9fa" stroke="#555" stroke-width="1.5" rx="3"/>
+<text x="800.0" y="252.8" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Payment Processor</text>
+<text x="800.0" y="267.1" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">(Stripe)</text>
+<rect x="720.0" y="400.0" width="160" height="80" fill="#f8f9fa" stroke="#555" stroke-width="1.5" rx="3"/>
+<text x="800.0" y="440.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Fraud Detection API</text>
+<ellipse cx="90.0" cy="270.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="90.0" y="262.9" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Checkout</text>
+<text x="90.0" y="277.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<ellipse cx="450.0" cy="270.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="450.0" y="262.9" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Payment</text>
+<text x="450.0" y="277.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<rect x="400.0" y="400.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<line x1="400.0" y1="408.0" x2="560.0" y2="408.0" stroke="#c0392b" stroke-width="1"/>
+<line x1="400.0" y1="472.0" x2="560.0" y2="472.0" stroke="#c0392b" stroke-width="1"/>
+<text x="480.0" y="440.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Payment Token Vault</text>
+<rect x="40.0" y="440.0" width="160" height="80" fill="#f8f9fa" stroke="#555" stroke-width="1.5"/>
+<line x1="40.0" y1="448.0" x2="200.0" y2="448.0" stroke="#555" stroke-width="1"/>
+<line x1="40.0" y1="512.0" x2="200.0" y2="512.0" stroke="#555" stroke-width="1"/>
+<text x="120.0" y="480.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Payment Audit Log</text>
+<polyline points="140.0,270.0 400.0,270.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="202.2" y="248.0" width="135.6" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="270.0" y="256.0" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Payment Request (gRPC)</text>
+<polyline points="500.0,268.6 720.0,262.3" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="553.4" y="243.4" width="112.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="609.6" y="251.4" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Stripe API (HTTPS)</text>
+<polyline points="458.7,319.2 472.9,400.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="429.2" y="349.2" width="100.8" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="479.6" y="357.2" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Token Read/Write</text>
+<polyline points="138.6,281.6 720.0,420.8" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="none"/>
+<rect x="373.5" y="329.6" width="118.2" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="432.6" y="337.6" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Fraud Score Request</text>
+<polyline points="97.1,319.5 114.3,440.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="none"/>
+<rect x="66.2" y="369.8" width="106.6" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="119.5" y="377.8" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Audit Event Write</text>
+</svg>
+</div>
+  
+<div class="entity-block">
+  <h3 class="entity-title">PCI DSS Scope (BoundaryBox)</h3>
+  <p class="entity-description">Description: Components in scope for PCI DSS compliance. Card data must not leave this boundary unencrypted.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Payment Processor (Stripe) (Actor) <em>— Out of Scope</em></h3>
+  <p class="entity-description"><strong>Reason for out of scope:</strong> Stripe is a PCI DSS Level 1 certified external vendor. Security of Stripe's infrastructure is governed by their compliance program and is outside this team's control.</p><p class="entity-description">Description: External payment processor handling card tokenization, charge authorization, and settlement. PCI DSS Level 1 certified.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Fraud Detection API (Actor) <em>— Out of Scope</em></h3>
+  <p class="entity-description"><strong>Reason for out of scope:</strong> Third-party SaaS service governed by vendor security agreement. Receives transaction metadata only (no raw card data).</p><p class="entity-description">Description: Third-party fraud scoring service that evaluates transactions for suspicious patterns before authorization.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Checkout Service (Process)</h3>
+  <p class="entity-description">Description: Orchestrates the checkout flow: validates cart, applies promotions, calls fraud detection, and triggers payment authorization via Stripe.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>24</td>
+  <td>Price Manipulation in Cart Validation</td>
+  <td>Tampering</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.2</td>
+  <td>If the Checkout Service trusts client-supplied prices rather than re-fetching from the Product Catalog, an attacker can manipulate the cart total and purchase items at arbitrary prices.</td>
+  <td>Never trust client-supplied prices. Always re-fetch authoritative prices from the Product Catalog Service at checkout time. Validate total amount before payment authorization.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td>Promo Code Abuse</td>
+  <td>Elevation of privilege</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.1</td>
+  <td>Automated scripts can brute-force valid promotional codes, applying large discounts without authorization.</td>
+  <td>Rate limit promo code validation per user/IP. Implement code complexity requirements. Log all failed validation attempts and alert on anomalies.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td>Double-Spend via Concurrent Checkout Requests</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.6</td>
+  <td>Concurrent checkout requests for the same cart can cause double charges or overselling of limited-stock items due to TOCTOU race condition.</td>
+  <td>Use pessimistic locking or distributed mutex (Redis SETNX) on cart during checkout. Implement idempotency keys for payment calls. Check inventory with SELECT FOR UPDATE.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td>Checkout Denial of Service</td>
+  <td>Denial of service</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.3</td>
+  <td>An attacker can initiate thousands of checkout sessions without completing payment, exhausting inventory locks and blocking legitimate purchases.</td>
+  <td>Implement checkout session timeouts. Release locks after timeout. Require CAPTCHA for guest checkouts. Rate limit checkout initiations per account.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Payment Service (Process)</h3>
+  <p class="entity-description">Description: Internal service managing payment method tokenization, charge lifecycle, refunds, and webhook processing from Stripe.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>28</td>
+  <td>Stripe Webhook Forgery</td>
+  <td>Spoofing</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.0</td>
+  <td>Forged webhook events claiming payment success could trigger order fulfilment without actual payment, resulting in financial loss.</td>
+  <td>Validate Stripe-Signature header using HMAC-SHA256 with the webhook signing secret. Reject events that fail signature verification. Process webhooks idempotently.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td>Payment Token Exposure in Logs</td>
+  <td>Information disclosure</td>
+  <td class="sev-high">High</td>
+  <td class="status-mitigated">Mitigated</td>
+  <td>7.0</td>
+  <td>Logging full request/response payloads may inadvertently log Stripe payment method IDs or tokens, which could be misused.</td>
+  <td>Implemented structured logging with field-level masking for payment-related fields. Log redaction verified by automated test suite.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td>Refund Authorization Bypass</td>
+  <td>Elevation of privilege</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>8.9</td>
+  <td>Missing role-based access control on the refund endpoint could allow any authenticated user to initiate refunds for any order.</td>
+  <td>Restrict refund endpoint to admin and customer-service roles. Validate that refund amount does not exceed original charge. Require 2FA for refunds above threshold.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Payment Token Vault (Store)</h3>
+  <p class="entity-description">Description: Encrypted data store for Stripe payment method tokens (not raw card data). Tokens are tied to customer accounts for saved payment methods.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>31</td>
+  <td>Mass Token Exfiltration</td>
+  <td>Information disclosure</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.5</td>
+  <td>A compromised Payment Service with database access could bulk-export all payment tokens, enabling fraudulent charges across all stored payment methods.</td>
+  <td>Enforce column-level encryption with keys stored in KMS. Implement DLP alerting on bulk SELECT queries. Restrict vault access to Payment Service service account only.</td>
+</tr>
+<tr>
+  <td>32</td>
+  <td>Token Database Tampering</td>
+  <td>Tampering</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.8</td>
+  <td>An attacker with write access could reassign payment tokens between customers, causing payments to be charged to wrong accounts.</td>
+  <td>Cryptographically bind tokens to customer IDs using signed records. Enable database row-level security. Audit all UPDATE operations on the vault table.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Payment Audit Log (Store)</h3>
+  <p class="entity-description">Description: Append-only write-once log of all payment events for compliance, dispute resolution, and forensic analysis. Stored in S3 with Object Lock.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Payment Request (gRPC) (Data Flow)</h3>
+  <p class="entity-description">Description: Checkout Service instructs Payment Service to charge the customer's saved payment method.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>33</td>
+  <td>Service Identity Spoofing</td>
+  <td>Spoofing</td>
+  <td class="sev-high">High</td>
+  <td class="status-open">Open</td>
+  <td>7.9</td>
+  <td>Without mutual TLS, a rogue service in the VPC could impersonate the Checkout Service and trigger unauthorized payments.</td>
+  <td>Enforce mTLS with short-lived certificates issued by an internal CA (SPIFFE/SPIRE). Validate client certificate SANs on every call.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Stripe API (HTTPS) (Data Flow)</h3>
+  <p class="entity-description">Description: Payment Service calls Stripe REST API to create charges, capture payments, and process refunds.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>34</td>
+  <td>Stripe API Key Exposure</td>
+  <td>Information disclosure</td>
+  <td class="sev-critical">Critical</td>
+  <td class="status-open">Open</td>
+  <td>9.4</td>
+  <td>Stripe API secret keys hardcoded in environment variables or leaked via logs would allow an attacker to make arbitrary charges or refunds.</td>
+  <td>Store Stripe API keys in a secrets manager (e.g., AWS Secrets Manager). Rotate keys regularly. Monitor for unauthorized API usage via Stripe radar and webhooks.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Token Read/Write (Data Flow)</h3>
+  <p class="entity-description">Description: Payment Service reads saved payment tokens and writes new tokenized payment methods to the vault.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Fraud Score Request (Data Flow)</h3>
+  <p class="entity-description">Description: Checkout Service sends transaction metadata to fraud detection API for risk scoring before payment authorization.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr>
+  <td>35</td>
+  <td>PII Leakage to Fraud Vendor</td>
+  <td>Information disclosure</td>
+  <td class="sev-medium">Medium</td>
+  <td class="status-open">Open</td>
+  <td>5.8</td>
+  <td>Transaction payloads sent to the fraud detection API may include unnecessary PII (full name, email, address), violating data minimization principles.</td>
+  <td>Apply data minimization: send only hashed identifiers, transaction amount, and risk signals. Review vendor DPA. Conduct annual data inventory of outbound fraud API payloads.</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="entity-block">
+  <h3 class="entity-title">Audit Event Write (Data Flow)</h3>
+  <p class="entity-description">Description: Checkout Service writes signed audit events for every checkout attempt to the append-only audit log.</p>
+  <table class="threat-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Title</th><th>Type</th><th>Severity</th>
+        <th>Status</th><th>Score</th><th>Description</th><th>Mitigations</th>
+      </tr>
+    </thead>
+    <tbody><tr><td colspan="8"><em>No threats</em></td></tr></tbody>
+  </table>
+</div>
+</section>
+</body>
+</html>

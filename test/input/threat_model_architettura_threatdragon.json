@@ -1,0 +1,280 @@
+{
+  "version": "2.0",
+  "summary": {
+    "title": "Architettura Cliente - Threat Model",
+    "owner": "IO",
+    "description": "Threat model dell'architettura: App esterna → Internet → App Service (Perimetro cliente)",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [],
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "Architettura Principale",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "version": "2.0",
+        "cells": [
+          {
+            "shape": "trust-boundary-box",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d482",
+            "zIndex": 0,
+            "position": { "x": 100, "y": 350 },
+            "size": { "width": 300, "height": 210 },
+            "attrs": {
+              "text": { "text": "Perimetro cliente" },
+              "body": {
+                "stroke": "#ff0000",
+                "strokeWidth": 1,
+                "strokeDasharray": "7 5"
+              }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "Perimetro cliente",
+              "description": "Confine di fiducia che delimita l'infrastruttura del cliente dalla rete pubblica",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "zIndex": 1,
+            "position": { "x": 170, "y": 40 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "App esterna" },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null
+              }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "App esterna",
+              "description": "Applicazione client esterna che comunica verso l'API pubblica",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "providesAuthentication": false,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567801",
+                  "number": 1,
+                  "title": "Spoofing dell'App esterna",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Spoofing",
+                  "description": "Un attaccante potrebbe impersonare l'App esterna inviando richieste API non autorizzate sfruttando l'assenza di mutua autenticazione.",
+                  "mitigation": "Implementare autenticazione client tramite certificati mTLS o API key con rotazione periodica."
+                },
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567802",
+                  "number": 2,
+                  "title": "Repudiation delle richieste API",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Repudiation",
+                  "description": "L'App esterna potrebbe negare di aver effettuato richieste in assenza di un meccanismo di audit trail affidabile.",
+                  "mitigation": "Abilitare logging strutturato con timestamp firmati su ogni richiesta in ingresso. Conservare i log su storage immutabile."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d480",
+            "zIndex": 1,
+            "position": { "x": 170, "y": 200 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Internet" },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null
+              }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "Internet",
+              "description": "Rete pubblica non affidabile attraverso cui transitano le comunicazioni",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "providesAuthentication": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "process",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d481",
+            "zIndex": 1,
+            "position": { "x": 200, "y": 410 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "App Service" },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null
+              }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "App Service",
+              "description": "Servizio applicativo interno nel perimetro cliente che espone l'API",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "privilegeLevel": "",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567805",
+                  "number": 5,
+                  "title": "Elevation of Privilege tramite bypass autorizzazione",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Elevation of privilege",
+                  "description": "Un attaccante autenticato potrebbe sfruttare logiche di autorizzazione insufficienti (IDOR, privilege escalation) per accedere a risorse di altri utenti o funzioni privilegiate.",
+                  "mitigation": "Implementare RBAC con verifica dell'ownership a livello di ogni endpoint. Eseguire revisione del codice focalizzata su authorization checks."
+                },
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567806",
+                  "number": 6,
+                  "title": "Denial of Service sull'endpoint API",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Denial of service",
+                  "description": "L'endpoint API esposto pubblicamente può essere bersaglio di attacchi volumetrici o di tipo slowloris che ne compromettono la disponibilità.",
+                  "mitigation": "Configurare rate limiting, throttling e circuit breaker. Integrare Azure DDoS Protection o equivalente WAF davanti all'App Service."
+                },
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567807",
+                  "number": 7,
+                  "title": "Information Disclosure tramite error messages",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "description": "Messaggi di errore dettagliati (stack trace, connection string, versioni componenti) possono esporre informazioni sensibili sull'infrastruttura interna.",
+                  "mitigation": "Configurare gestione centralizzata degli errori con messaggi generici verso il client. Loggare i dettagli solo internamente."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d483",
+            "zIndex": 2,
+            "source": { "cell": "f47ac10b-58cc-4372-a567-0e02b2c3d479" },
+            "target": { "cell": "f47ac10b-58cc-4372-a567-0e02b2c3d480" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [
+              { "position": 0.5, "attrs": { "label": { "text": "HTTP Request" } } }
+            ],
+            "data": {
+              "type": "tm.Flow",
+              "name": "HTTP Request",
+              "description": "Richiesta HTTPS dall'App esterna verso Internet",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": false,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567803",
+                  "number": 3,
+                  "title": "Tampering dei dati in transito",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Un attaccante man-in-the-middle potrebbe intercettare e modificare il payload delle richieste HTTP se il canale non è adeguatamente protetto.",
+                  "mitigation": "Forzare TLS 1.2+ su tutti i canali. Implementare certificate pinning lato client. Verificare l'integrità del payload con HMAC."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d484",
+            "zIndex": 2,
+            "source": { "cell": "f47ac10b-58cc-4372-a567-0e02b2c3d480" },
+            "target": { "cell": "f47ac10b-58cc-4372-a567-0e02b2c3d481" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [
+              { "position": 0.5, "attrs": { "label": { "text": "API" } } }
+            ],
+            "data": {
+              "type": "tm.Flow",
+              "name": "API",
+              "description": "Chiamata API REST verso l'App Service attraverso il perimetro cliente",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": false,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS/REST",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567804",
+                  "number": 4,
+                  "title": "Information Disclosure su canale API non cifrato",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Se il canale API non utilizza TLS, dati sensibili (token, payload, PII) possono essere intercettati da attori sulla rete pubblica.",
+                  "mitigation": "Imporre HTTPS obbligatorio con redirect automatico da HTTP. Configurare HSTS con preload. Utilizzare TLS 1.3 dove possibile."
+                },
+                {
+                  "threatId": "a1b2c3d4-e5f6-7890-abcd-ef1234567808",
+                  "number": 8,
+                  "title": "Injection tramite input non validato",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Payload API contenenti input malevoli (SQL injection, command injection, XXE) non validati lato server possono compromettere il sistema backend.",
+                  "mitigation": "Implementare validazione e sanitizzazione degli input server-side. Utilizzare query parametrizzate. Adottare un WAF davanti all'endpoint."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "reviewer": "",
+    "threatTop": 8,
+    "diagramTop": 1
+  }
+}

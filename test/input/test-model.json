@@ -1,0 +1,1301 @@
+{
+  "version": "2.0",
+  "summary": {
+    "title": "E-Commerce Platform Threat Model",
+    "owner": "Security Architecture Team",
+    "description": "Threat model for a modern e-commerce platform including web frontend, API gateway, microservices, payment processing, database tier, and external identity provider. Covers customer-facing flows, internal service communication, and third-party integrations.",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [
+      { "name": "Alice Mercer" },
+      { "name": "Bob Tanaka" },
+      { "name": "Carol Singh" }
+    ],
+    "reviewer": "David Okonkwo",
+    "diagramTop": 3,
+    "threatTop": 42,
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "Frontend & Authentication",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "version": "2.0",
+        "description": "Covers the customer browser, CDN, web frontend, and the external Identity Provider (IdP) SSO flow.",
+        "cells": [
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-internet",
+            "zIndex": 0,
+            "position": { "x": 100, "y": 20 },
+            "size": { "width": 300, "height": 200 },
+            "attrs": {
+              "text": { "text": "Public Internet" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "Public Internet",
+              "description": "Untrusted external network where end-users and attackers reside.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-dmz",
+            "zIndex": 0,
+            "position": { "x": 500, "y": 20 },
+            "size": { "width": 340, "height": 200 },
+            "attrs": {
+              "text": { "text": "DMZ / Edge" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "DMZ / Edge",
+              "description": "Demilitarized zone hosting CDN edge nodes and WAF.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-internal",
+            "zIndex": 0,
+            "position": { "x": 100, "y": 300 },
+            "size": { "width": 740, "height": 200 },
+            "attrs": {
+              "text": { "text": "Internal VPC" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "Internal VPC",
+              "description": "Private VPC containing application servers and services.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "actor-customer",
+            "zIndex": 1,
+            "position": { "x": 140, "y": 80 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Customer Browser" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "Customer Browser",
+              "description": "End-user browser interacting with the storefront. Runs untrusted client-side JavaScript.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "providesAuthentication": false,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0001-4000-8000-000000000001",
+                  "number": 1,
+                  "title": "Session Token Theft via XSS",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "8.8",
+                  "type": "Spoofing",
+                  "description": "Malicious scripts injected into the page can steal session cookies or OAuth tokens stored in localStorage, allowing an attacker to impersonate the customer.",
+                  "mitigation": "Set HttpOnly and Secure flags on all session cookies. Store tokens in memory only. Implement a strict Content Security Policy (CSP). Sanitize all user-generated content rendered in the DOM."
+                },
+                {
+                  "threatId": "a1b2c3d4-0002-4000-8000-000000000002",
+                  "number": 2,
+                  "title": "Lack of Client-Side Audit Trail",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "score": "4.3",
+                  "type": "Repudiation",
+                  "description": "Without server-side logging of significant customer actions (add to cart, checkout initiation), a customer could deny having placed an order.",
+                  "mitigation": "Log all order-critical events server-side with timestamps and IP addresses. Use signed audit log entries."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "actor-idp",
+            "zIndex": 1,
+            "position": { "x": 540, "y": 80 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "External IdP (OAuth2)" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "External IdP (OAuth2)",
+              "description": "Third-party identity provider (e.g. Google, Auth0) used for SSO. Out of direct control of the platform team.",
+              "outOfScope": true,
+              "reasonOutOfScope": "Managed by a third-party vendor; security posture governed by SLA and vendor compliance certifications (SOC 2, ISO 27001).",
+              "hasOpenThreats": true,
+              "providesAuthentication": true,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0003-4000-8000-000000000003",
+                  "number": 3,
+                  "title": "Compromised IdP Issues Forged Tokens",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.1",
+                  "type": "Spoofing",
+                  "description": "If the external IdP is compromised or misconfigured, it may issue JWTs for arbitrary users, granting them full access to the platform.",
+                  "mitigation": "Validate JWT signatures against the IdP's published JWKS endpoint. Enforce audience (aud) and issuer (iss) claims. Implement token binding where possible."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-frontend",
+            "zIndex": 1,
+            "position": { "x": 350, "y": 350 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "Web Frontend (SPA)" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "Web Frontend (SPA)",
+              "description": "React single-page application served via CDN. Handles rendering, routing, and OAuth2 PKCE flow for authentication.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": true,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "privilegeLevel": "low",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0004-4000-8000-000000000004",
+                  "number": 4,
+                  "title": "Open Redirect in OAuth Callback",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.4",
+                  "type": "Spoofing",
+                  "description": "The OAuth2 redirect_uri parameter is not strictly validated, allowing an attacker to redirect the authorization code to an attacker-controlled endpoint.",
+                  "mitigation": "Strictly whitelist allowed redirect_uri values. Use state parameter with CSRF token. Validate redirect_uri on both client and authorization server."
+                },
+                {
+                  "threatId": "a1b2c3d4-0005-4000-8000-000000000005",
+                  "number": 5,
+                  "title": "Denial of Service via CDN Cache Poisoning",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.9",
+                  "type": "Denial of service",
+                  "description": "Attackers may poison the CDN cache with malformed or malicious responses, causing legitimate users to receive corrupted pages.",
+                  "mitigation": "Use cache keys that include all relevant headers. Validate responses before caching. Implement cache purge procedures."
+                },
+                {
+                  "threatId": "a1b2c3d4-0006-4000-8000-000000000006",
+                  "number": 6,
+                  "title": "Sensitive Data in Browser Local Storage",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "score": "6.5",
+                  "type": "Information disclosure",
+                  "description": "Access tokens or PII stored in localStorage are accessible to any script running on the page, enabling theft via XSS.",
+                  "mitigation": "Tokens are now stored in memory only (React state/context). Sensitive operations require re-authentication. HttpOnly cookies used for refresh tokens."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-browser-frontend",
+            "zIndex": 2,
+            "source": { "cell": "actor-customer" },
+            "target": { "cell": "proc-frontend" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "HTTPS Page Request" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "HTTPS Page Request",
+              "description": "Customer browser requests SPA assets and API data over HTTPS.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0007-4000-8000-000000000007",
+                  "number": 7,
+                  "title": "TLS Downgrade Attack",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.5",
+                  "type": "Tampering",
+                  "description": "An active network attacker may attempt to downgrade TLS to an older, vulnerable version (e.g., TLS 1.0) to intercept traffic.",
+                  "mitigation": "Enforce TLS 1.2+ via server configuration. Enable HSTS with includeSubDomains and preload. Disable SSL 3.0, TLS 1.0, TLS 1.1 on all edge nodes."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-frontend-idp",
+            "zIndex": 2,
+            "source": { "cell": "proc-frontend" },
+            "target": { "cell": "actor-idp" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "OAuth2 PKCE Flow" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OAuth2 PKCE Flow",
+              "description": "PKCE-based OAuth2 authorization flow redirected via browser to the external IdP.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0008-4000-8000-000000000008",
+                  "number": 8,
+                  "title": "Authorization Code Interception",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.2",
+                  "type": "Information disclosure",
+                  "description": "Without PKCE, a malicious app on the same device could intercept the authorization code from the redirect URI and exchange it for tokens.",
+                  "mitigation": "Enforce PKCE (S256 code challenge) for all public clients. Validate code_challenge on the authorization server. Ensure short-lived authorization codes (< 1 minute)."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "title": "API Gateway & Microservices",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "version": "2.0",
+        "description": "Internal service mesh: API Gateway, Order Service, Product Catalog, Inventory Service and their backing stores.",
+        "cells": [
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-apigw",
+            "zIndex": 0,
+            "position": { "x": 80, "y": 20 },
+            "size": { "width": 240, "height": 160 },
+            "attrs": {
+              "text": { "text": "API Gateway Zone" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "API Gateway Zone",
+              "description": "Edge layer receiving all inbound API traffic before routing to internal services.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-services",
+            "zIndex": 0,
+            "position": { "x": 400, "y": 20 },
+            "size": { "width": 580, "height": 500 },
+            "attrs": {
+              "text": { "text": "Internal Services VPC" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "Internal Services VPC",
+              "description": "Private network hosting all microservices, accessible only via API Gateway or internal service-to-service calls.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "actor-mobile",
+            "zIndex": 1,
+            "position": { "x": 120, "y": 600 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Mobile App" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "Mobile App",
+              "description": "Native iOS/Android application that consumes the REST API. Handles authentication tokens locally.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "providesAuthentication": false,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0009-4000-8000-000000000009",
+                  "number": 9,
+                  "title": "Token Storage in Insecure Location",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.1",
+                  "type": "Information disclosure",
+                  "description": "Access and refresh tokens stored in insecure shared preferences or unprotected files on rooted/jailbroken devices can be extracted by malicious apps.",
+                  "mitigation": "Use iOS Keychain and Android Keystore for token storage. Detect rooted/jailbroken devices and limit functionality. Implement certificate pinning."
+                },
+                {
+                  "threatId": "a1b2c3d4-0010-4000-8000-000000000010",
+                  "number": 10,
+                  "title": "Fake Mobile App Impersonation",
+                  "status": "NotApplicable",
+                  "severity": "High",
+                  "score": "6.8",
+                  "type": "Spoofing",
+                  "description": "A cloned or repackaged version of the mobile app could be published on third-party stores to steal credentials.",
+                  "mitigation": "N/A — Platform enforces app attestation (App Attest / Play Integrity). Mitigated at the OS level."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-apigw",
+            "zIndex": 1,
+            "position": { "x": 120, "y": 70 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "API Gateway" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "API Gateway",
+              "description": "Central ingress point for all REST API traffic. Performs JWT validation, rate limiting, WAF filtering, and routing to downstream services.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": false,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": false,
+              "privilegeLevel": "high",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0011-4000-8000-000000000011",
+                  "number": 11,
+                  "title": "JWT Algorithm Confusion Attack",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.0",
+                  "type": "Elevation of privilege",
+                  "description": "If the API Gateway accepts 'alg: none' or allows RS256 tokens verified as HS256 using the public key as HMAC secret, attackers can forge arbitrary tokens.",
+                  "mitigation": "Explicitly whitelist allowed JWT algorithms (RS256 only). Reject tokens with 'alg: none'. Use a well-maintained JWT library with algorithm pinning."
+                },
+                {
+                  "threatId": "a1b2c3d4-0012-4000-8000-000000000012",
+                  "number": 12,
+                  "title": "API Rate Limit Bypass",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.5",
+                  "type": "Denial of service",
+                  "description": "Distributed clients rotating IPs can bypass per-IP rate limits, overwhelming backend services with excessive requests.",
+                  "mitigation": "Implement rate limiting by user ID (JWT sub claim) in addition to IP. Use token bucket algorithm. Integrate with a threat intelligence feed for known bot IPs."
+                },
+                {
+                  "threatId": "a1b2c3d4-0013-4000-8000-000000000013",
+                  "number": 13,
+                  "title": "Verbose Error Responses Leak Internal Details",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "score": "4.0",
+                  "type": "Information disclosure",
+                  "description": "Stack traces or internal service names returned in 500 error responses reveal architecture details useful for targeted attacks.",
+                  "mitigation": "Gateway now returns generic error messages. Internal errors are logged with correlation IDs only. No stack traces in production responses."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-order",
+            "zIndex": 1,
+            "position": { "x": 450, "y": 60 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "Order Service" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "Order Service",
+              "description": "Manages order lifecycle: creation, status updates, fulfilment triggers. Writes to the Orders DB and emits events to the message queue.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": false,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": true,
+              "privilegeLevel": "medium",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0014-4000-8000-000000000014",
+                  "number": 14,
+                  "title": "IDOR on Order Retrieval",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "8.5",
+                  "type": "Elevation of privilege",
+                  "description": "Without per-resource authorization checks, a customer can access another customer's order by manipulating the orderId parameter in the URL.",
+                  "mitigation": "Enforce resource-level authorization: verify JWT sub claim matches the order's owner on every read/write operation. Add integration tests for IDOR scenarios."
+                },
+                {
+                  "threatId": "a1b2c3d4-0015-4000-8000-000000000015",
+                  "number": 15,
+                  "title": "Order Tampering via Replay Attack",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.8",
+                  "type": "Tampering",
+                  "description": "An attacker who captures a valid 'create order' request can replay it to create duplicate orders, potentially abusing promotional codes or stock reserves.",
+                  "mitigation": "Implement idempotency keys for order creation. Validate idempotency key uniqueness per user. Expire idempotency keys after 24 hours."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-catalog",
+            "zIndex": 1,
+            "position": { "x": 650, "y": 60 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "Product Catalog Service" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "Product Catalog Service",
+              "description": "Read-heavy service providing product listings, search, and detail pages. Backed by an Elasticsearch cluster and PostgreSQL.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": false,
+              "handlesCardPayment": false,
+              "handlesGoodsOrServices": true,
+              "privilegeLevel": "low",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0016-4000-8000-000000000016",
+                  "number": 16,
+                  "title": "NoSQL Injection in Search Query",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "8.1",
+                  "type": "Tampering",
+                  "description": "Unsanitized search query parameters passed to Elasticsearch queries can be manipulated to exfiltrate hidden product data or cause denial-of-service via expensive aggregation queries.",
+                  "mitigation": "Use parameterized Elasticsearch query DSL. Whitelist allowed query fields. Set query complexity limits and circuit breakers on the Elasticsearch cluster."
+                },
+                {
+                  "threatId": "a1b2c3d4-0017-4000-8000-000000000017",
+                  "number": 17,
+                  "title": "Price Data Tampering via Cache Poisoning",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.5",
+                  "type": "Tampering",
+                  "description": "If the catalog cache (Redis) can be poisoned with incorrect price data, customers may see wrong prices, causing financial or reputational harm.",
+                  "mitigation": "Sign cached price data with an HMAC key. Validate signatures on cache reads. Implement cache integrity monitoring alerts."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "store",
+            "id": "store-ordersdb",
+            "zIndex": 1,
+            "position": { "x": 450, "y": 260 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Orders DB (PostgreSQL)" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Store",
+              "name": "Orders DB (PostgreSQL)",
+              "description": "Relational database storing order records, line items, status history, and customer references. Contains PII.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": false,
+              "storesCredentials": false,
+              "isEncrypted": true,
+              "isSigned": false,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0018-4000-8000-000000000018",
+                  "number": 18,
+                  "title": "SQL Injection via Order Service",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.3",
+                  "type": "Tampering",
+                  "description": "Unsanitized order fields forwarded to raw SQL queries could allow attackers to dump the entire orders database or modify order statuses.",
+                  "mitigation": "Use parameterized queries or an ORM exclusively. Enable pg_audit for query logging. Apply principle of least privilege: Order Service DB user has no DDL permissions."
+                },
+                {
+                  "threatId": "a1b2c3d4-0019-4000-8000-000000000019",
+                  "number": 19,
+                  "title": "PII Exposure via Unencrypted Backup",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.0",
+                  "type": "Information disclosure",
+                  "description": "Database backups stored without encryption could expose customer PII (name, address, order history) if backup storage is breached.",
+                  "mitigation": "Encrypt all backups at rest using AES-256. Store backup encryption keys in a dedicated HSM or KMS. Restrict backup bucket access to backup service role only."
+                },
+                {
+                  "threatId": "a1b2c3d4-0020-4000-8000-000000000020",
+                  "number": 20,
+                  "title": "No Database Audit Log",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "score": "4.5",
+                  "type": "Repudiation",
+                  "description": "Without an audit log, changes to order records cannot be attributed to specific users or services, hampering incident response.",
+                  "mitigation": "pg_audit extension is now enabled. All INSERT, UPDATE, DELETE on orders table are logged to a write-once audit log store."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "store",
+            "id": "store-catalog-cache",
+            "zIndex": 1,
+            "position": { "x": 700, "y": 260 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Product Cache (Redis)" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Store",
+              "name": "Product Cache (Redis)",
+              "description": "In-memory cache storing product listings and prices. No persistent data; populated from PostgreSQL on cache miss.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": false,
+              "storesCredentials": false,
+              "isEncrypted": false,
+              "isSigned": false,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0021-4000-8000-000000000021",
+                  "number": 21,
+                  "title": "Unauthenticated Redis Access",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "8.0",
+                  "type": "Information disclosure",
+                  "description": "If Redis is not configured with authentication (requirepass) and network access is not restricted, any host in the VPC can read or flush the cache.",
+                  "mitigation": "Enable Redis AUTH. Restrict network access via security groups to Order Service and Catalog Service IP ranges only. Enable Redis TLS."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-mobile-apigw",
+            "zIndex": 2,
+            "source": { "cell": "actor-mobile" },
+            "target": { "cell": "proc-apigw" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "REST API (HTTPS)" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "REST API (HTTPS)",
+              "description": "Mobile app communicates with backend via REST over HTTPS with Bearer token authentication.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0022-4000-8000-000000000022",
+                  "number": 22,
+                  "title": "Missing Certificate Pinning",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.3",
+                  "type": "Tampering",
+                  "description": "Without certificate pinning in the mobile app, a compromised CA or local proxy can perform a MITM attack and inspect or modify API traffic.",
+                  "mitigation": "Implement certificate pinning using the leaf certificate or public key hash. Provide an update mechanism to rotate pinned certificates before expiry."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-apigw-order",
+            "zIndex": 2,
+            "source": { "cell": "proc-apigw" },
+            "target": { "cell": "proc-order" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Internal gRPC" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Internal gRPC",
+              "description": "Routing order-related requests from API Gateway to Order Service via mTLS-secured gRPC.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "gRPC/TLS",
+              "threats": []
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-apigw-catalog",
+            "zIndex": 2,
+            "source": { "cell": "proc-apigw" },
+            "target": { "cell": "proc-catalog" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Internal gRPC" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Internal gRPC",
+              "description": "Routing catalog browse and search requests from API Gateway to Product Catalog Service.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "gRPC/TLS",
+              "threats": []
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-order-db",
+            "zIndex": 2,
+            "source": { "cell": "proc-order" },
+            "target": { "cell": "store-ordersdb" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "SQL over TLS" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "SQL over TLS",
+              "description": "Order Service reads and writes order records to PostgreSQL over an encrypted connection.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "PostgreSQL/TLS",
+              "threats": []
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-catalog-cache",
+            "zIndex": 2,
+            "source": { "cell": "proc-catalog" },
+            "target": { "cell": "store-catalog-cache" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Redis TCP" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Redis TCP",
+              "description": "Catalog Service reads/writes product data to/from Redis cache.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "TCP",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0023-4000-8000-000000000023",
+                  "number": 23,
+                  "title": "Unencrypted Redis Traffic",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.0",
+                  "type": "Information disclosure",
+                  "description": "Redis communication without TLS allows any host in the same subnet to sniff product prices and catalog data in transit.",
+                  "mitigation": "Enable Redis TLS (stunnel or native Redis 6+ TLS). Enforce TLS on both client and server. Update connection strings in Catalog Service."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Payment & Checkout",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "version": "2.0",
+        "description": "Payment processing flow including the Checkout Service, external Payment Processor (Stripe), card data vault, and fraud detection.",
+        "cells": [
+          {
+            "shape": "trust-boundary-box",
+            "id": "tb-pci",
+            "zIndex": 0,
+            "position": { "x": 360, "y": 20 },
+            "size": { "width": 600, "height": 500 },
+            "attrs": {
+              "text": { "text": "PCI DSS Scope" },
+              "body": { "stroke": "#ff0000", "strokeWidth": 1, "strokeDasharray": "7 5" }
+            },
+            "data": {
+              "type": "tm.BoundaryBox",
+              "name": "PCI DSS Scope",
+              "description": "Components in scope for PCI DSS compliance. Card data must not leave this boundary unencrypted.",
+              "isTrustBoundary": true,
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "actor-payment-processor",
+            "zIndex": 1,
+            "position": { "x": 800, "y": 200 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Payment Processor (Stripe)" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "Payment Processor (Stripe)",
+              "description": "External payment processor handling card tokenization, charge authorization, and settlement. PCI DSS Level 1 certified.",
+              "outOfScope": true,
+              "reasonOutOfScope": "Stripe is a PCI DSS Level 1 certified external vendor. Security of Stripe's infrastructure is governed by their compliance program and is outside this team's control.",
+              "hasOpenThreats": false,
+              "providesAuthentication": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "actor",
+            "id": "actor-fraud",
+            "zIndex": 1,
+            "position": { "x": 800, "y": 380 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Fraud Detection API" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Actor",
+              "name": "Fraud Detection API",
+              "description": "Third-party fraud scoring service that evaluates transactions for suspicious patterns before authorization.",
+              "outOfScope": true,
+              "reasonOutOfScope": "Third-party SaaS service governed by vendor security agreement. Receives transaction metadata only (no raw card data).",
+              "hasOpenThreats": false,
+              "providesAuthentication": false,
+              "threats": []
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-checkout",
+            "zIndex": 1,
+            "position": { "x": 120, "y": 200 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "Checkout Service" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "Checkout Service",
+              "description": "Orchestrates the checkout flow: validates cart, applies promotions, calls fraud detection, and triggers payment authorization via Stripe.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": false,
+              "handlesCardPayment": true,
+              "handlesGoodsOrServices": true,
+              "privilegeLevel": "high",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0024-4000-8000-000000000024",
+                  "number": 24,
+                  "title": "Price Manipulation in Cart Validation",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.2",
+                  "type": "Tampering",
+                  "description": "If the Checkout Service trusts client-supplied prices rather than re-fetching from the Product Catalog, an attacker can manipulate the cart total and purchase items at arbitrary prices.",
+                  "mitigation": "Never trust client-supplied prices. Always re-fetch authoritative prices from the Product Catalog Service at checkout time. Validate total amount before payment authorization."
+                },
+                {
+                  "threatId": "a1b2c3d4-0025-4000-8000-000000000025",
+                  "number": 25,
+                  "title": "Promo Code Abuse",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.1",
+                  "type": "Elevation of privilege",
+                  "description": "Automated scripts can brute-force valid promotional codes, applying large discounts without authorization.",
+                  "mitigation": "Rate limit promo code validation per user/IP. Implement code complexity requirements. Log all failed validation attempts and alert on anomalies."
+                },
+                {
+                  "threatId": "a1b2c3d4-0026-4000-8000-000000000026",
+                  "number": 26,
+                  "title": "Double-Spend via Concurrent Checkout Requests",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.6",
+                  "type": "Tampering",
+                  "description": "Concurrent checkout requests for the same cart can cause double charges or overselling of limited-stock items due to TOCTOU race condition.",
+                  "mitigation": "Use pessimistic locking or distributed mutex (Redis SETNX) on cart during checkout. Implement idempotency keys for payment calls. Check inventory with SELECT FOR UPDATE."
+                },
+                {
+                  "threatId": "a1b2c3d4-0027-4000-8000-000000000027",
+                  "number": 27,
+                  "title": "Checkout Denial of Service",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.3",
+                  "type": "Denial of service",
+                  "description": "An attacker can initiate thousands of checkout sessions without completing payment, exhausting inventory locks and blocking legitimate purchases.",
+                  "mitigation": "Implement checkout session timeouts. Release locks after timeout. Require CAPTCHA for guest checkouts. Rate limit checkout initiations per account."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "process",
+            "id": "proc-payment-svc",
+            "zIndex": 1,
+            "position": { "x": 480, "y": 200 },
+            "size": { "width": 100, "height": 100 },
+            "attrs": {
+              "text": { "text": "Payment Service" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Process",
+              "name": "Payment Service",
+              "description": "Internal service managing payment method tokenization, charge lifecycle, refunds, and webhook processing from Stripe.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isWebApplication": false,
+              "handlesCardPayment": true,
+              "handlesGoodsOrServices": false,
+              "privilegeLevel": "high",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0028-4000-8000-000000000028",
+                  "number": 28,
+                  "title": "Stripe Webhook Forgery",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.0",
+                  "type": "Spoofing",
+                  "description": "Forged webhook events claiming payment success could trigger order fulfilment without actual payment, resulting in financial loss.",
+                  "mitigation": "Validate Stripe-Signature header using HMAC-SHA256 with the webhook signing secret. Reject events that fail signature verification. Process webhooks idempotently."
+                },
+                {
+                  "threatId": "a1b2c3d4-0029-4000-8000-000000000029",
+                  "number": 29,
+                  "title": "Payment Token Exposure in Logs",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "score": "7.0",
+                  "type": "Information disclosure",
+                  "description": "Logging full request/response payloads may inadvertently log Stripe payment method IDs or tokens, which could be misused.",
+                  "mitigation": "Implemented structured logging with field-level masking for payment-related fields. Log redaction verified by automated test suite."
+                },
+                {
+                  "threatId": "a1b2c3d4-0030-4000-8000-000000000030",
+                  "number": 30,
+                  "title": "Refund Authorization Bypass",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "8.9",
+                  "type": "Elevation of privilege",
+                  "description": "Missing role-based access control on the refund endpoint could allow any authenticated user to initiate refunds for any order.",
+                  "mitigation": "Restrict refund endpoint to admin and customer-service roles. Validate that refund amount does not exceed original charge. Require 2FA for refunds above threshold."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "store",
+            "id": "store-payment-vault",
+            "zIndex": 1,
+            "position": { "x": 480, "y": 380 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Payment Token Vault" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Store",
+              "name": "Payment Token Vault",
+              "description": "Encrypted data store for Stripe payment method tokens (not raw card data). Tokens are tied to customer accounts for saved payment methods.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isALog": false,
+              "storesCredentials": true,
+              "isEncrypted": true,
+              "isSigned": true,
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0031-4000-8000-000000000031",
+                  "number": 31,
+                  "title": "Mass Token Exfiltration",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.5",
+                  "type": "Information disclosure",
+                  "description": "A compromised Payment Service with database access could bulk-export all payment tokens, enabling fraudulent charges across all stored payment methods.",
+                  "mitigation": "Enforce column-level encryption with keys stored in KMS. Implement DLP alerting on bulk SELECT queries. Restrict vault access to Payment Service service account only."
+                },
+                {
+                  "threatId": "a1b2c3d4-0032-4000-8000-000000000032",
+                  "number": 32,
+                  "title": "Token Database Tampering",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.8",
+                  "type": "Tampering",
+                  "description": "An attacker with write access could reassign payment tokens between customers, causing payments to be charged to wrong accounts.",
+                  "mitigation": "Cryptographically bind tokens to customer IDs using signed records. Enable database row-level security. Audit all UPDATE operations on the vault table."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "store",
+            "id": "store-audit-log",
+            "zIndex": 1,
+            "position": { "x": 120, "y": 420 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": {
+              "text": { "text": "Payment Audit Log" },
+              "body": { "stroke": "#333333", "strokeWidth": 1, "strokeDasharray": null }
+            },
+            "data": {
+              "type": "tm.Store",
+              "name": "Payment Audit Log",
+              "description": "Append-only write-once log of all payment events for compliance, dispute resolution, and forensic analysis. Stored in S3 with Object Lock.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isALog": true,
+              "storesCredentials": false,
+              "isEncrypted": true,
+              "isSigned": true,
+              "threats": []
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-checkout-payment",
+            "zIndex": 2,
+            "source": { "cell": "proc-checkout" },
+            "target": { "cell": "proc-payment-svc" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Payment Request (gRPC)" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Payment Request (gRPC)",
+              "description": "Checkout Service instructs Payment Service to charge the customer's saved payment method.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "gRPC/mTLS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0033-4000-8000-000000000033",
+                  "number": 33,
+                  "title": "Service Identity Spoofing",
+                  "status": "Open",
+                  "severity": "High",
+                  "score": "7.9",
+                  "type": "Spoofing",
+                  "description": "Without mutual TLS, a rogue service in the VPC could impersonate the Checkout Service and trigger unauthorized payments.",
+                  "mitigation": "Enforce mTLS with short-lived certificates issued by an internal CA (SPIFFE/SPIRE). Validate client certificate SANs on every call."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-payment-stripe",
+            "zIndex": 2,
+            "source": { "cell": "proc-payment-svc" },
+            "target": { "cell": "actor-payment-processor" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Stripe API (HTTPS)" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Stripe API (HTTPS)",
+              "description": "Payment Service calls Stripe REST API to create charges, capture payments, and process refunds.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0034-4000-8000-000000000034",
+                  "number": 34,
+                  "title": "Stripe API Key Exposure",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "score": "9.4",
+                  "type": "Information disclosure",
+                  "description": "Stripe API secret keys hardcoded in environment variables or leaked via logs would allow an attacker to make arbitrary charges or refunds.",
+                  "mitigation": "Store Stripe API keys in a secrets manager (e.g., AWS Secrets Manager). Rotate keys regularly. Monitor for unauthorized API usage via Stripe radar and webhooks."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-payment-vault",
+            "zIndex": 2,
+            "source": { "cell": "proc-payment-svc" },
+            "target": { "cell": "store-payment-vault" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Token Read/Write" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Token Read/Write",
+              "description": "Payment Service reads saved payment tokens and writes new tokenized payment methods to the vault.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "PostgreSQL/TLS",
+              "threats": []
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-checkout-fraud",
+            "zIndex": 2,
+            "source": { "cell": "proc-checkout" },
+            "target": { "cell": "actor-fraud" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Fraud Score Request" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Fraud Score Request",
+              "description": "Checkout Service sends transaction metadata to fraud detection API for risk scoring before payment authorization.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": false,
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "protocol": "HTTPS",
+              "threats": [
+                {
+                  "threatId": "a1b2c3d4-0035-4000-8000-000000000035",
+                  "number": 35,
+                  "title": "PII Leakage to Fraud Vendor",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "score": "5.8",
+                  "type": "Information disclosure",
+                  "description": "Transaction payloads sent to the fraud detection API may include unnecessary PII (full name, email, address), violating data minimization principles.",
+                  "mitigation": "Apply data minimization: send only hashed identifiers, transaction amount, and risk signals. Review vendor DPA. Conduct annual data inventory of outbound fraud API payloads."
+                }
+              ]
+            }
+          },
+          {
+            "shape": "flow",
+            "id": "flow-checkout-audit",
+            "zIndex": 2,
+            "source": { "cell": "proc-checkout" },
+            "target": { "cell": "store-audit-log" },
+            "vertices": [],
+            "connector": "smooth",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1,
+                "strokeDasharray": null,
+                "targetMarker": { "name": "block" },
+                "sourceMarker": { "name": "" }
+              }
+            },
+            "labels": [{ "position": 0.5, "attrs": { "label": { "text": "Audit Event Write" } } }],
+            "data": {
+              "type": "tm.Flow",
+              "name": "Audit Event Write",
+              "description": "Checkout Service writes signed audit events for every checkout attempt to the append-only audit log.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": false,
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "protocol": "HTTPS (S3 API)",
+              "threats": []
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

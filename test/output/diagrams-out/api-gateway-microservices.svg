@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="980.0" height="740.0" viewBox="0 0 980.0 740.0" style="background:#fff;">
+<defs>
+  <marker id="arrow-open" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+  <marker id="arrow-open-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#c0392b"/>
+  </marker>
+  <marker id="arrow-closed-start" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+  </marker>
+</defs>
+<rect x="40.0" y="40.0" width="240" height="160" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="360.0" y="40.0" width="580" height="500" fill="none" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="8 4" rx="4"/>
+<rect x="80.0" y="620.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5" rx="3"/>
+<text x="160.0" y="660.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Mobile App</text>
+<ellipse cx="130.0" cy="140.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="130.0" y="132.8" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">API</text>
+<text x="130.0" y="147.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Gateway</text>
+<ellipse cx="460.0" cy="130.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="460.0" y="122.8" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Order</text>
+<text x="460.0" y="137.2" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<ellipse cx="660.0" cy="130.0" rx="50" ry="50" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<text x="660.0" y="115.7" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Product</text>
+<text x="660.0" y="130.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Catalog</text>
+<text x="660.0" y="144.3" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Service</text>
+<rect x="410.0" y="280.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<line x1="410.0" y1="288.0" x2="570.0" y2="288.0" stroke="#c0392b" stroke-width="1"/>
+<line x1="410.0" y1="352.0" x2="570.0" y2="352.0" stroke="#c0392b" stroke-width="1"/>
+<text x="490.0" y="320.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Orders DB (PostgreSQL)</text>
+<rect x="660.0" y="280.0" width="160" height="80" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+<line x1="660.0" y1="288.0" x2="820.0" y2="288.0" stroke="#c0392b" stroke-width="1"/>
+<line x1="660.0" y1="352.0" x2="820.0" y2="352.0" stroke="#c0392b" stroke-width="1"/>
+<text x="740.0" y="320.0" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">Product Cache (Redis)</text>
+<polyline points="157.7,620.0 132.9,189.9" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="108.9" y="396.2" width="100.8" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="159.3" y="404.2" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">REST API (HTTPS)</text>
+<polyline points="180.0,138.5 410.0,131.5" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="252.9" y="113.0" width="83.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="294.6" y="121.0" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Internal gRPC</text>
+<polyline points="180.0,139.1 610.0,130.9" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="353.0" y="113.0" width="83.4" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="394.7" y="121.0" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Internal gRPC</text>
+<polyline points="467.8,179.4 483.7,280.0" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#arrow-closed)" marker-start="url(#arrow-closed-start)"/>
+<rect x="450.8" y="219.5" width="77.6" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#555" stroke-width="0.5"/>
+<text x="489.6" y="227.5" font-size="10" fill="#555" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">SQL over TLS</text>
+<polyline points="679.4,176.1 723.2,280.0" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-open)" marker-start="url(#arrow-open-start)"/>
+<rect x="684.1" y="214.6" width="60.2" height="14" rx="3" fill="white" fill-opacity="0.85" stroke="#c0392b" stroke-width="0.5"/>
+<text x="714.2" y="222.6" font-size="10" fill="#c0392b" text-anchor="middle" font-family="sans-serif" dominant-baseline="middle">Redis TCP</text>
+</svg>
